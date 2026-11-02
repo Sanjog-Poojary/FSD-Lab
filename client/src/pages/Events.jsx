@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
+
 import EventCard from "../components/EventCard";
+import Loading from "../components/Loading";
 
 const eventData = [
   {
@@ -25,6 +28,23 @@ const eventData = [
 ];
 
 function Events() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    console.log("Events page loaded");
+
+    const timer = setTimeout(() => {
+      setEvents(eventData);
+      setLoading(false);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      console.log("Events page cleanup");
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-100 px-6 py-16">
 
@@ -39,19 +59,23 @@ function Events() {
           for the ones you like.
         </p>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {loading ? (
+          <Loading />
+        ) : (
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-          {eventData.map((event) => (
-            <EventCard
-              key={event.id}
-              title={event.title}
-              description={event.description}
-              date={event.date}
-              location={event.location}
-            />
-          ))}
+            {events.map((event) => (
+              <EventCard
+                key={event.id}
+                title={event.title}
+                description={event.description}
+                date={event.date}
+                location={event.location}
+              />
+            ))}
 
-        </div>
+          </div>
+        )}
 
       </div>
 
