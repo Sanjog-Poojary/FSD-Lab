@@ -1,8 +1,14 @@
+require("dotenv").config();
+
 const express = require("express");
-const app = express();
+const cors = require("cors");
+
+const connectDB = require("./config/db");
 const eventRoutes = require("./routes/eventRoutes");
 
-// Middleware to read JSON request bodies
+const app = express();
+
+app.use(cors());
 app.use(express.json());
 
 // Home route
@@ -10,7 +16,7 @@ app.get("/", (req, res) => {
   res.status(200).send("Event Management API Running");
 });
 
-// Event API routes
+// Existing REST API endpoints
 app.use("/api/events", eventRoutes);
 
 // Handle unknown routes
@@ -20,8 +26,14 @@ app.use((req, res) => {
   });
 });
 
-// Start server
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+
+async function startServer() {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+startServer();

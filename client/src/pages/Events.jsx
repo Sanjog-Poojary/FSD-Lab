@@ -54,12 +54,12 @@ function Events() {
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
               <EventCard
-                key={event.id}
+                key={event._id}
                 title={event.title}
                 description={event.description}
                 date={event.date}
-                location={event.location}
                 time={event.time}
+                location={event.location}
               />
             ))}
           </div>
