@@ -2,52 +2,30 @@ import { useEffect, useState } from "react";
 
 import EventCard from "../components/EventCard";
 import Loading from "../components/Loading";
-
-const eventData = [
-  {
-    id: 1,
-    title: "Tech Fest 2026",
-    description: "A technology event for students.",
-    date: "20 September 2026",
-    location: "Mumbai",
-  },
-  {
-    id: 2,
-    title: "React Workshop",
-    description: "Learn React from basics to advanced.",
-    date: "25 September 2026",
-    location: "Pune",
-  },
-  {
-    id: 3,
-    title: "AI Conference",
-    description: "Explore the latest developments in AI.",
-    date: "30 September 2026",
-    location: "Bangalore",
-  },
-];
+import { getEvents } from "../services/api";
 
 function Events() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    console.log("Events page loaded");
+    async function loadEvents() {
+      try {
+        const data = await getEvents();
+        setEvents(data);
+      } catch (err) {
+        setError(err.message || "Unable to load events");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    const timer = setTimeout(() => {
-      setEvents(eventData);
-      setLoading(false);
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-      console.log("Events page cleanup");
-    };
+    loadEvents();
   }, []);
 
   return (
     <div className="min-h-screen bg-slate-100 px-6 py-16">
-
       <div className="mx-auto max-w-7xl">
 
         <h1 className="text-4xl font-bold text-slate-900">
@@ -55,15 +33,25 @@ function Events() {
         </h1>
 
         <p className="mt-2 text-slate-600">
-          Explore our upcoming events and register
-          for the ones you like.
+          Explore our upcoming events and register.
         </p>
 
-        {loading ? (
-          <Loading />
-        ) : (
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {loading && <Loading />}
 
+        {!loading && error && (
+          <p className="mt-6 text-red-600">
+            {error}
+          </p>
+        )}
+
+        {!loading && !error && events.length === 0 && (
+          <p className="mt-6 text-slate-600">
+            No events are available.
+          </p>
+        )}
+
+        {!loading && !error && events.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
               <EventCard
                 key={event.id}
@@ -71,14 +59,13 @@ function Events() {
                 description={event.description}
                 date={event.date}
                 location={event.location}
+                time={event.time}
               />
             ))}
-
           </div>
         )}
 
       </div>
-
     </div>
   );
 }
