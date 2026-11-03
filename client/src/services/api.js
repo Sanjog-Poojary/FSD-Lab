@@ -21,12 +21,32 @@ async function apiRequest(path, options = {}) {
   return data;
 }
 
-// Existing event API
+// Event APIs
 export function getEvents() {
   return apiRequest("/events");
 }
 
-// Register an account
+export function createEvent(eventData) {
+  return apiRequest("/events", {
+    method: "POST",
+    body: JSON.stringify(eventData),
+  });
+}
+
+export function updateEvent(id, eventData) {
+  return apiRequest(`/events/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(eventData),
+  });
+}
+
+export function deleteEvent(id) {
+  return apiRequest(`/events/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// Authentication APIs
 export function registerUser(userData) {
   return apiRequest("/auth/register", {
     method: "POST",
@@ -34,7 +54,6 @@ export function registerUser(userData) {
   });
 }
 
-// Login
 export function loginUser(credentials) {
   return apiRequest("/auth/login", {
     method: "POST",
@@ -42,7 +61,6 @@ export function loginUser(credentials) {
   });
 }
 
-// Load the current authenticated user
 export function getCurrentUser() {
   return apiRequest("/auth/me");
 }

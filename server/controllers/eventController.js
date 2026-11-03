@@ -78,6 +78,20 @@ async function createEvent(req, res) {
       location: location.trim(),
     });
 
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("event:created", {
+        message: `A new event has been added: ${event.title}`,
+        event: {
+          _id: event._id,
+          title: event.title,
+          date: event.date,
+          location: event.location,
+        },
+        createdAt: new Date(),
+      });
+    }
+
     res.status(201).json({
       message: "Event created successfully",
       event,
@@ -153,6 +167,20 @@ async function updateEvent(req, res) {
       });
     }
 
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("event:updated", {
+        message: `An event has been updated: ${event.title}`,
+        event: {
+          _id: event._id,
+          title: event.title,
+          date: event.date,
+          location: event.location,
+        },
+        createdAt: new Date(),
+      });
+    }
+
     res.status(200).json({
       message: "Event updated successfully",
       event,
@@ -193,6 +221,18 @@ async function deleteEvent(req, res) {
     if (!event) {
       return res.status(404).json({
         message: "Event not found",
+      });
+    }
+
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("event:deleted", {
+        message: `An event has been cancelled: ${event.title}`,
+        event: {
+          _id: event._id,
+          title: event.title,
+        },
+        createdAt: new Date(),
       });
     }
 

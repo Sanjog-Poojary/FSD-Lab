@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { AuthContext } from "../context/AuthContext";
+import NotificationBell from "./NotificationBell.jsx";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -97,13 +98,20 @@ function Navbar() {
 
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="rounded-lg border border-slate-600 px-3 py-2 md:hidden"
-        >
-          {menuOpen ? "✕" : "☰"}
-        </button>
+        {/* Notification Bell & Mobile Menu Button */}
+        <div className="flex items-center gap-3">
+          <NotificationBell />
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            className="rounded-lg border border-slate-600 px-3 py-2 md:hidden"
+          >
+            {menuOpen ? "✕" : "☰"}
+          </button>
+        </div>
 
       </div>
 
