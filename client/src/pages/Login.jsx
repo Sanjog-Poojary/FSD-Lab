@@ -1,9 +1,10 @@
-import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+import useAuth from "../hooks/useAuth";
 
 function Login() {
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -12,41 +13,55 @@ function Login() {
   });
 
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
 
-    setFormData({
-      ...formData,
+    setFormData((previous) => ({
+      ...previous,
       [name]: value,
-    });
+    }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setMessage("");
 
-    if (!formData.email || !formData.password) {
+    if (!formData.email.trim() || !formData.password) {
       setMessage("Please fill in all fields.");
       return;
     }
 
-    login(formData.email);
-    setMessage("Login successful!");
-    setTimeout(() => {
-      navigate("/");
-    }, 800);
+    try {
+      setSubmitting(true);
+
+      const data = await login(
+        formData.email,
+        formData.password
+      );
+
+      // Redirect according to the role returned by the backend.
+      if (data.user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      setMessage(error.message || "Login failed.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 sm:px-6 sm:py-16">
-
-      <div className="mx-auto w-full max-w-md rounded-xl bg-white p-6 sm:p-8 shadow-md">
-
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+    <div className="min-h-screen bg-slate-100 px-6 py-16">
+      <div className="mx-auto max-w-md rounded-xl bg-white p-8 shadow-md">
+        <h1 className="text-3xl font-bold text-slate-900">
           Login
         </h1>
 
-        <p className="mt-2 text-sm sm:text-base text-slate-600">
+        <p className="mt-2 text-slate-600">
           Login to manage your event registrations.
         </p>
 
@@ -54,60 +69,64 @@ function Login() {
           onSubmit={handleSubmit}
           className="mt-6 space-y-4"
         >
-
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="login-email" className="mb-1 block font-medium">
               Email
             </label>
 
             <input
+              id="login-email"
               type="email"
               name="email"
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
+              required
+              className="w-full rounded-lg border px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter your email"
-              className="w-full rounded-lg border border-slate-300 px-4 py-2.5
-                         text-slate-900 outline-none transition
-                         focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="login-password" className="mb-1 block font-medium">
               Password
             </label>
 
             <input
+              id="login-password"
               type="password"
               name="password"
+              autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
+              required
+              className="w-full rounded-lg border px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter your password"
-              className="w-full rounded-lg border border-slate-300 px-4 py-2.5
-                         text-slate-900 outline-none transition
-                         focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-indigo-600
-                       px-4 py-3 font-semibold text-white
-                       transition hover:bg-indigo-700 shadow-sm"
+            disabled={submitting}
+            className="w-full rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Login
+            {submitting ? "Logging in..." : "Login"}
           </button>
 
           {message && (
-            <p className="text-center font-semibold text-indigo-600 text-sm">
+            <p role="alert" className="text-center text-sm text-red-600">
               {message}
             </p>
           )}
-
         </form>
 
+        <p className="mt-5 text-center text-sm text-slate-600">
+          Don't have an account?{" "}
+          <Link to="/register" className="font-semibold text-indigo-600">
+            Register
+          </Link>
+        </p>
       </div>
-
     </div>
   );
 }

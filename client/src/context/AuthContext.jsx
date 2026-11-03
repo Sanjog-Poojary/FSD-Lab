@@ -1,45 +1,93 @@
-import { createContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useEffect,
+  useState,
+} from "react";
 
-export const AuthContext = createContext();
+import {
+  loginUser,
+  registerUser,
+  getCurrentUser,
+} from "../services/api";
+
+export const AuthContext = createContext(null);
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
+  // Restore and verify the login when the app opens.
   useEffect(() => {
-    const savedUser = localStorage.getItem("eventHubUser");
+    let active = true;
 
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    async function restoreSession() {
+      const token = localStorage.getItem("eventHubToken");
+
+      if (!token) {
+        setAuthLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getCurrentUser();
+
+        if (active) {
+          setUser(data.user);
+        }
+      } catch {
+        localStorage.removeItem("eventHubToken");
+
+        if (active) {
+          setUser(null);
+        }
+      } finally {
+        if (active) {
+          setAuthLoading(false);
+        }
+      }
     }
+
+    restoreSession();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  function login(email) {
-    const role = email && email.toLowerCase().includes("admin") ? "admin" : "user";
-    const loggedInUser = {
-      name: email.split("@")[0],
-      email: email,
-      role: role,
-    };
+  async function login(email, password) {
+    const data = await loginUser({ email, password });
 
-    setUser(loggedInUser);
+    localStorage.setItem("eventHubToken", data.token);
+    setUser(data.user);
 
-    localStorage.setItem(
-      "eventHubUser",
-      JSON.stringify(loggedInUser)
-    );
+    return data;
+  }
+
+  async function register(name, email, password) {
+    const data = await registerUser({
+      name,
+      email,
+      password,
+    });
+
+    localStorage.setItem("eventHubToken", data.token);
+    setUser(data.user);
+
+    return data;
   }
 
   function logout() {
+    localStorage.removeItem("eventHubToken");
     setUser(null);
-
-    localStorage.removeItem("eventHubUser");
   }
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        authLoading,
         login,
+        register,
         logout,
       }}
     >
